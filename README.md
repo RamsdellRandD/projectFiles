@@ -1,0 +1,1 @@
+Files are made available here so designers, artists and other creative people (that's you!) can create more cool things with them. If you make something cool using a Ramsdell R and D file, consider posting about it and mentioning @RamsdellRandD on instagram.
