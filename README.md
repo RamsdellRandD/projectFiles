@@ -1,1 +1,1 @@
-Explore the project folders above to find Blender, Adobe, CAD and other types of files. Download these files (use "download raw file") and use them as a jumping-off point to create cool stuff! If you do, consider posting about it and mentioning @RamsdellRandD on instagram. Happy creating!
+Explore the project folders above to find Blender, Adobe, CAD and other types of files. Download these files (use "download raw file") and use them as a jumping-off point to create cool stuff! If you do, consider posting about it and mentioning @RamsdellRandD on Instagram. Happy creating!
