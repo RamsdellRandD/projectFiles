@@ -1,1 +1,1 @@
-Files are made available here so designers, artists and other creative people (that's you!) can create more cool things with them. If you make something cool using a Ramsdell R and D file, consider posting about it and mentioning @RamsdellRandD on instagram.
+Explore the project folders above to find Blender, Adobe, CAD and other types of files. Download these files (use "download raw file") and use them as a jumping-off point to create cool stuff! If you do, consider posting about it and mentioning @RamsdellRandD on instagram. Happy creating!
