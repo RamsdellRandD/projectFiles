@@ -1,42 +1,72 @@
 import bpy; import bmesh
 import numpy as np; from mathutils import Matrix, Vector
-import time
+from bpy.types import Panel, Operator, PropertyGroup
+from bpy.props import FloatProperty, PointerProperty
 
-#clear out "generated chairs" collection
-for obj in bpy.data.scenes[0].collection.objects:
-    bpy.data.objects.remove(obj)
 
-#purge unused meshes
-for mesh in bpy.data.meshes:
-    if mesh.users == 0:
-        bpy.data.meshes.remove(mesh)
-
+#create a property group to hold all chair parameters
+class chairProps(PropertyGroup):
+    h: FloatProperty(
+        name = "seat height",
+        default = 0.6
+        )
+    
+    w: FloatProperty(
+        name = "seat width",
+        default = 0.6
+        )
         
-#set chair parameters
-h = .6 #seat height, m
-w = .6 #seat width, m
-d = .45 #seat depth, m
-b = .4 #back height, m
-a = 15 #back angle, degrees
+    d: FloatProperty(
+        name = "seat depth",
+        default = 0.45
+        )
+        
+    b: FloatProperty(
+        name = "back height",
+        default = 0.5
+        )
+        
+    a: FloatProperty(
+        name = "back angle",
+        default = np.pi / 12,
+        subtype = "ANGLE" #makes it stored in radians, displayed in degrees
+        )
+        
+    t: FloatProperty(
+        name = "seat & back thickness",
+        default = 0.0125
+        )
+        
+    lft: FloatProperty(
+        name = "front leg thickness",
+        default = 0.075
+        )
+        
+    lbt: FloatProperty(
+        name = "back leg thickness",
+        default = 0.045
+        )
+        
+    sw: FloatProperty(
+        name = "seat strut width",
+        default = 0.6
+        )
+        
+    
+bpy.utils.register_class(chairProps) #register the property group
+bpy.types.Scene.chairProps = PointerProperty(type = chairProps) #pointer property to attach property group to scene
 
-#secondary parameters
-t = 0.0125 #seat and back thickness, m
-lft = 0.075 #thickness at top of front leg, m
-lbt = 0.045 #x-thickness of back leg
-sw = .08 #vertical width of the supports under the seat, m
-
-a = (a/360) * 2*np.pi #convert a to radians
 
 
 #functions for individual components of the chair
-def autoSeat001(h, w, d, t):
+def autoSeat001(col, h, w, d, t):
     '''creates a rectangular prism seat for the chair
     based on given parameters'''
     
     #create seat object and mesh
     seatMe = bpy.data.meshes.new("genSeat.001")
     seatOb = bpy.data.objects.new("genSeat.001", seatMe)
-    bpy.data.scenes[0].collection.objects.link(seatOb)
+    col.objects.link(seatOb)
     
     #create seat geometry
     seatBM = bmesh.new()
@@ -52,7 +82,7 @@ def autoSeat001(h, w, d, t):
     seatBM.free()
     
     
-def autoFrontLegs001(h, w, d, t, lft):
+def autoFrontLegs001(col, h, w, d, t, lft):
     '''creates the front legs of the chair based on given parameters'''
     
     #define some geometric parameters
@@ -67,7 +97,7 @@ def autoFrontLegs001(h, w, d, t, lft):
     #create object and mesh
     legFMe = bpy.data.meshes.new("genLegF.001")
     legFOb = bpy.data.objects.new("genLegF.001", legFMe)
-    bpy.data.scenes[0].collection.objects.link(legFOb)
+    col.objects.link(legFOb)
     
     #create geometry
     legFBM = bmesh.new()
@@ -120,7 +150,7 @@ def autoFrontLegs001(h, w, d, t, lft):
     
  
     
-def autoBackLegs001(h, w, d, b, a, t, lft, lbt, sw):
+def autoBackLegs001(col, h, w, d, b, a, t, lft, lbt, sw):
     '''creates the back legs of the chair based on given parameters
     (the back legs also include the support for the backrest)'''
     
@@ -141,7 +171,7 @@ def autoBackLegs001(h, w, d, b, a, t, lft, lbt, sw):
     #create object and mesh
     legBMe = bpy.data.meshes.new("genLegB.001")
     legBOb = bpy.data.objects.new("genLegB.001", legBMe)
-    bpy.data.scenes[0].collection.objects.link(legBOb)
+    col.objects.link(legBOb)
     
     #create geometry
     legBBM = bmesh.new()
@@ -206,7 +236,7 @@ def autoBackLegs001(h, w, d, b, a, t, lft, lbt, sw):
     legBBM.free()
     
     
-def autoBack001(h, w, d, b, a, t, lft, lbt, sw):
+def autoBack001(col, h, w, d, b, a, t, lft, lbt, sw):
     '''creates the backrest of the chair based on given parameters'''
     
     #define some geometric parameters
@@ -225,7 +255,7 @@ def autoBack001(h, w, d, b, a, t, lft, lbt, sw):
     #create object and mesh
     backMe = bpy.data.meshes.new("genBack.001")
     backOb = bpy.data.objects.new("genBack.001", backMe)
-    bpy.data.scenes[0].collection.objects.link(backOb)
+    col.objects.link(backOb)
     
     #create geometry
     backBM = bmesh.new()
@@ -265,7 +295,7 @@ def autoBack001(h, w, d, b, a, t, lft, lbt, sw):
     backBM.free()
     
 
-def autoFrontStruts001(h, w, d, t, lft, lbt, sw):
+def autoFrontStruts001(col, h, w, d, t, lft, lbt, sw):
     '''creates the front struts of the chair based on given parameters'''
     
     #define some geometric parameters
@@ -281,7 +311,7 @@ def autoFrontStruts001(h, w, d, t, lft, lbt, sw):
     #create object and mesh
     strutFMe = bpy.data.meshes.new("genStrutF.001")
     strutFOb = bpy.data.objects.new("genStrutF.001", strutFMe)
-    bpy.data.scenes[0].collection.objects.link(strutFOb)
+    col.objects.link(strutFOb)
     
     #create geometry
     strutFBM = bmesh.new()
@@ -313,7 +343,7 @@ def autoFrontStruts001(h, w, d, t, lft, lbt, sw):
     strutFMe.update()
     strutFBM.free()
     
-def autoBackStruts001(h, w, d, t, lft, lbt, sw):
+def autoBackStruts001(col, h, w, d, t, lft, lbt, sw):
     '''creates the back struts of the chair based on given parameters'''
     
     #define some geometric parameters
@@ -329,7 +359,7 @@ def autoBackStruts001(h, w, d, t, lft, lbt, sw):
     #create object and mesh
     strutBMe = bpy.data.meshes.new("genStrutB.001")
     strutBOb = bpy.data.objects.new("genStrutB.001", strutBMe)
-    bpy.data.scenes[0].collection.objects.link(strutBOb)
+    col.objects.link(strutBOb)
     
     #create geometry
     strutBBM = bmesh.new()
@@ -362,7 +392,7 @@ def autoBackStruts001(h, w, d, t, lft, lbt, sw):
     strutBBM.free()
     
     
-def autoSideStruts001(h, w, d, t, lft, lbt, sw):
+def autoSideStruts001(col, h, w, d, t, lft, lbt, sw):
     '''creates the side struts of the chair based on given parameters'''
     
     #define some geometric parameters
@@ -378,7 +408,7 @@ def autoSideStruts001(h, w, d, t, lft, lbt, sw):
     #create object and mesh
     strutSMe = bpy.data.meshes.new("genStrutS.001")
     strutSOb = bpy.data.objects.new("genStrutS.001", strutSMe)
-    bpy.data.scenes[0].collection.objects.link(strutSOb)
+    col.objects.link(strutSOb)
     
     #create geometry
     strutSBM = bmesh.new()
@@ -409,21 +439,90 @@ def autoSideStruts001(h, w, d, t, lft, lbt, sw):
     strutSBM.to_mesh(strutSMe)
     strutSMe.update()
     strutSBM.free()
+
+
+#One function to rule them all (actually build the chair)
+def generateChair(col, h, w, d, b, a, t, lft, lbt, sw):
     
+    #clear out any objects already in active collection
+    for obj in col.objects:
+        bpy.data.objects.remove(obj)
+
+    #purge unused meshes
+    for mesh in bpy.data.meshes:
+        if mesh.users == 0:
+            bpy.data.meshes.remove(mesh)
     
-autoSeat001(h, w, d, t)
-autoFrontLegs001(h, w, d, t, lft)
-autoBackLegs001(h, w, d, b, a, t, lft, lbt, sw)
-autoBack001(h, w, d, b, a, t, lft, lbt, sw)
-autoFrontStruts001(h, w, d, t, lft, lbt, sw)
-autoBackStruts001(h, w, d, t, lft, lbt, sw)
-autoSideStruts001(h, w, d, t, lft, lbt, sw)
+    #call functions to build chair components
+    autoSeat001(col, h, w, d, t)
+    autoFrontLegs001(col, h, w, d, t, lft)
+    autoBackLegs001(col, h, w, d, b, a, t, lft, lbt, sw)
+    autoBack001(col, h, w, d, b, a, t, lft, lbt, sw)
+    autoFrontStruts001(col, h, w, d, t, lft, lbt, sw)
+    autoBackStruts001(col, h, w, d, t, lft, lbt, sw)
+    autoSideStruts001(col, h, w, d, t, lft, lbt, sw)
+
+    #apply material to the chair
+    mat = bpy.data.materials["generated chair material"]
+
+    for i in range(int(len(col.objects))):
+        ob = col.objects[i]
+        ob.data.materials.append(mat)
 
 
+#An operator to build the chair
+class generateChairOp(Operator): #important: name must be unique (tried with same name as function, that was a problem)
+    bl_idname = "collection.generatechair"
+    bl_label = "Generate Chair"
+    
+    bl_options = {"REGISTER", "UNDO"} #make it undoable
+    
+    def execute(self, context): #execute method (needed)
+        col = context.collection #active collection
+        props = context.scene.chairProps #property group defined earlier
+        
+        generateChair(col, #call chair generator function, pass it props from prop group
+            props.h, 
+            props.w, 
+            props.d, 
+            props.b, 
+            props.a, 
+            props.t, 
+            props.lft, 
+            props.lbt, 
+            props.sw)
+            
+        return {'FINISHED'} #necessary
+
+bpy.utils.register_class(generateChairOp) #register the operator (has to be done before drawing it)
 
 
-
-
+#create a panel in the GUI!
+class autoChairPanel001(bpy.types.Panel):
+    bl_label = "Chair Generator" 
+    bl_idname = "autoChairPanel001"
+    bl_space_type = "VIEW_3D" #in the 3D viewport
+    bl_region_type = "UI" #in the N-menu
+    bl_category = "Parametric Tools" #in a new tab called this
+    
+    def draw(self, context): #draw method (needed)
+        layout = self.layout
+        props = context.scene.chairProps
+    
+        #draw in controls for all the dimensions and a button to execute
+        layout.prop(props, "h")
+        layout.prop(props, "w")
+        layout.prop(props, "d")
+        layout.prop(props, "b")
+        layout.prop(props, "a")
+        layout.prop(props, "t")
+        layout.prop(props, "lft")
+        layout.prop(props, "lbt")
+        layout.prop(props, "sw")
+        layout.operator("collection.generatechair")
+        
+        
+bpy.utils.register_class(autoChairPanel001) #register the panel
 
 
         
